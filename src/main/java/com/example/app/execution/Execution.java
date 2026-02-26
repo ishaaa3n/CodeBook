@@ -1,8 +1,11 @@
 package com.example.app.execution;
 import com.example.app.user.User;
+
 import com.example.app.note.Note;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,9 +29,12 @@ public class Execution {
 
     private String output;
     private String error;
-    private LocalDateTime executionTime;
+    private Long executionTime;
     private LocalDateTime createdAt;
     private LocalDateTime completedAt;
+
+    @Enumerated(EnumType.STRING)
+    private ExecutionStatus status;
 
     @ManyToOne
     @JoinColumn(name="user_id")
