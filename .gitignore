@@ -1,0 +1,50 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+cd D:\Ishan\app
+
+# Append secret-related ignores to .gitignore
+Add-Content -Path .gitignore -Value "`n# Secrets & Environment`n.env`n*.env`n*.env.local`n!.env.example`napplication-local.properties`napplication-prod.properties`n!application.properties"
+
+# Verify it was added
+Get-Content .gitignore | Select-String ".env"
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+
+# Secrets & Environment
+.env
+*.env
+*.env.local
+!.env.example
+application-local.properties
+application-prod.properties
+!application.properties
