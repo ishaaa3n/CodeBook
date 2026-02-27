@@ -30,7 +30,7 @@ public class Note {
     private String language;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
+    private String input;
     @ManyToOne
     @JoinColumn(name="user_id")
     private User user;
