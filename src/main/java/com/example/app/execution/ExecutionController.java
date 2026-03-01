@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.app.note.NoteRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,7 +26,7 @@ public class ExecutionController {
     // → trigger execution for a note
 
     @PostMapping("{noteId}")
-    public Execution triggerExecution(@PathVariable Long noteId, Authentication authentication) {
+    public ExecutionResponse triggerExecution(@PathVariable Long noteId, Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         return executionService.createExecution(userId, noteId);
     }
@@ -35,7 +34,7 @@ public class ExecutionController {
     // GET  /api/executions/{id}            
     // → get single execution status
     @GetMapping("/{id}")
-    public Execution getExecution(@PathVariable Long id, Authentication authentication) {
+    public ExecutionResponse getExecution(@PathVariable Long id, Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         return executionService.getExecution(id, userId);
     }
@@ -45,7 +44,7 @@ public class ExecutionController {
 // → get all executions for current user
 
     @GetMapping
-    public List<Execution> getExecutions(Authentication authentication) {
+    public List<ExecutionResponse> getExecutions(Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         
         return executionService.getUserExecutions(userId);
@@ -53,7 +52,7 @@ public class ExecutionController {
 
 // GET  /api/executions/note/{noteId}   → get all executions for a specific note
     @GetMapping("/note/{noteId}")
-    public List<Execution> getExecutionsForNote(@PathVariable Long noteId, Authentication authentication) {
+    public List<ExecutionResponse> getExecutionsForNote(@PathVariable Long noteId, Authentication authentication) {
         Long userId = (Long) authentication.getPrincipal();
         return executionService.getExecutionsForNote(userId, noteId);
     }
