@@ -7,9 +7,11 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
+// take a message and put it into RabbitMQ.
 public class ExecutionPublisher {
 
     private final AmqpTemplate amqpTemplate;
+    // Spring's abstraction for sending messages to RabbitMQ
 
     @Value("${rabbitmq.exchange}")
     private String exchange;

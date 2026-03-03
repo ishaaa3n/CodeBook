@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -31,12 +32,12 @@ public class NoteController {
         return noteService.getNoteById(id, userId);
     }
     @PostMapping
-    public NoteResponse createNote(Authentication authentication, @RequestBody NoteRequest request){
+    public NoteResponse createNote(Authentication authentication,@Valid @RequestBody NoteRequest request){
         Long userId = (Long)authentication.getPrincipal();
         return noteService.createNote(userId, request);
     }
     @PutMapping("/{id}")
-    public NoteResponse updateNote(@PathVariable Long id, Authentication authentication, @RequestBody NoteRequest request){
+    public NoteResponse updateNote(@PathVariable Long id, Authentication authentication,@Valid @RequestBody NoteRequest request){
         Long userId = (Long)authentication.getPrincipal();
         return noteService.updateNote(id, userId, request);
     }
