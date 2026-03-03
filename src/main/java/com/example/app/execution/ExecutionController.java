@@ -31,7 +31,8 @@ public class ExecutionController {
         return executionService.createExecution(userId, noteId);
     }
 
-    // GET  /api/executions/{id}            
+    // GET  /ap
+    // i/executions/{id}            
     // → get single execution status
     @GetMapping("/{id}")
     public ExecutionResponse getExecution(@PathVariable Long id, Authentication authentication) {

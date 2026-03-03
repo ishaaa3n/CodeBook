@@ -3,6 +3,9 @@ package com.example.app.note;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import com.example.app.user.User;
@@ -14,34 +17,37 @@ import lombok.RequiredArgsConstructor;
 public class NoteService {
     private final NoteRepository noteRepository;
     private final UserRepository userRepository;
-    
-    private NoteResponse toResponse(Note note) {
-    return NoteResponse.builder()
-            .id(note.getId())
-            .title(note.getTitle())
-            .content(note.getContent())
-            .language(note.getLanguage())
-            .input(note.getInput())
-            .createdAt(note.getCreatedAt())
-            .updatedAt(note.getUpdatedAt())
-            .userId(note.getUser().getId())
-            .userName(note.getUser().getName())
-            .build();
-}
 
-    public List<NoteResponse>getAllNotes(Long userId){
+    private NoteResponse toResponse(Note note) {
+        return NoteResponse.builder()
+                .id(note.getId())
+                .title(note.getTitle())
+                .content(note.getContent())
+                .language(note.getLanguage())
+                .input(note.getInput())
+                .createdAt(note.getCreatedAt())
+                .updatedAt(note.getUpdatedAt())
+                .userId(note.getUser().getId())
+                .userName(note.getUser().getName())
+                .build();
+    }
+
+    @Cacheable(value = "notes", key = "#userId")
+    public List<NoteResponse> getAllNotes(Long userId) {
         return noteRepository.findByUserId(userId).stream().map(this::toResponse).toList();
     }
+
+    @Cacheable(value = "note", key = "#id + '-' + #userId")
     public NoteResponse getNoteById(Long id, Long userId) {
         Note note = noteRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
         return toResponse(note);
     }
-    // createNote(Note note) → creates a new note
-    //service methods to return NoteResponse
-    public NoteResponse createNote(Long userId,NoteRequest request){
+
+    @CacheEvict(value = "notes", key = "#userId")
+    public NoteResponse createNote(Long userId, NoteRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found")); 
+                .orElseThrow(() -> new RuntimeException("User not found"));
         Note note = Note.builder()
                 .title(request.getTitle())
                 .content(request.getContent())
@@ -51,11 +57,15 @@ public class NoteService {
                 .updatedAt(LocalDateTime.now())
                 .user(user)
                 .build();
-            Note savedNote = noteRepository.save(note);
-            return toResponse(savedNote);
-        }
-    // updateNote(Note note) → updates an existing note
-    public NoteResponse updateNote(Long id, Long userId, NoteRequest request){
+        Note savedNote = noteRepository.save(note);
+        return toResponse(savedNote);
+    }
+
+    @Caching(evict = {
+        @CacheEvict(value = "notes", key = "#userId"),
+        @CacheEvict(value = "note", key = "#id + '-' + #userId")
+    })
+    public NoteResponse updateNote(Long id, Long userId, NoteRequest request) {
         Note existingNote = noteRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
         existingNote.setTitle(request.getTitle());
@@ -66,12 +76,14 @@ public class NoteService {
         Note updatedNote = noteRepository.save(existingNote);
         return toResponse(updatedNote);
     }
-    // deleteNoteById(Long id) → deletes a note by its ID
-    public void deleteNoteById(Long id, Long userId){
+
+    @Caching(evict = {
+        @CacheEvict(value = "notes", key = "#userId"),
+        @CacheEvict(value = "note", key = "#id + '-' + #userId")
+    })
+    public void deleteNoteById(Long id, Long userId) {
         Note existingNote = noteRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
         noteRepository.delete(existingNote);
     }
-
-
 }
