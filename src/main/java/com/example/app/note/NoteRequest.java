@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 
 public class NoteRequest {
-        @NotBlank(message = "Title cannot be empty")
+    @NotBlank(message = "Title cannot be empty")
     @Size(max = 255, message = "Title cannot exceed 255 characters")
     private String title;
 

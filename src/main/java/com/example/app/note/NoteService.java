@@ -2,14 +2,19 @@ package com.example.app.note;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import com.example.app.config.ValidationException;
+import com.example.app.execution.ExecutionRepository;
+import com.example.app.folder.Folder;
+import com.example.app.folder.FolderRepository;
 
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import com.example.app.user.User;
 import com.example.app.user.UserRepository;
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -17,27 +22,44 @@ import lombok.RequiredArgsConstructor;
 public class NoteService {
     private final NoteRepository noteRepository;
     private final UserRepository userRepository;
+    private final FolderRepository folderRepository;
+    private final ExecutionRepository executionRepository;
+
+    private static final List<String> SUPPORTED_LANGUAGES = 
+    List.of("python", "javascript", "java", "cpp");
+
+    private void validateLanguage(String language) {
+    if (!SUPPORTED_LANGUAGES.contains(language.toLowerCase())) {
+        throw new ValidationException("Unsupported language: " + language + 
+            ". Supported: " + SUPPORTED_LANGUAGES);
+    }
+}
+
+
+
 
     private NoteResponse toResponse(Note note) {
-        return NoteResponse.builder()
-                .id(note.getId())
-                .title(note.getTitle())
-                .content(note.getContent())
-                .language(note.getLanguage())
-                .input(note.getInput())
-                .createdAt(note.getCreatedAt())
-                .updatedAt(note.getUpdatedAt())
-                .userId(note.getUser().getId())
-                .userName(note.getUser().getName())
-                .build();
-    }
+    return NoteResponse.builder()
+            .id(note.getId())
+            .title(note.getTitle())
+            .content(note.getContent())
+            .language(note.getLanguage())
+            .input(note.getInput())
+            .createdAt(note.getCreatedAt())
+            .updatedAt(note.getUpdatedAt())
+            .userId(note.getUser().getId())
+            .userName(note.getUser().getName())
+            .folderId(note.getFolder() != null ? note.getFolder().getId() : null)
+            .folderName(note.getFolder() != null ? note.getFolder().getName() : null)
+            .build();
+}
 
-    @Cacheable(value = "notes", key = "#userId")
+    // @Cacheable(value = "notes", key = "#userId")
     public List<NoteResponse> getAllNotes(Long userId) {
         return noteRepository.findByUserId(userId).stream().map(this::toResponse).toList();
     }
 
-    @Cacheable(value = "note", key = "#id + '-' + #userId")
+    // @Cacheable(value = "note", key = "#id + '-' + #userId")
     public NoteResponse getNoteById(Long id, Long userId) {
         Note note = noteRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
@@ -46,6 +68,7 @@ public class NoteService {
 
     @CacheEvict(value = "notes", key = "#userId")
     public NoteResponse createNote(Long userId, NoteRequest request) {
+        validateLanguage(request.getLanguage());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Note note = Note.builder()
@@ -66,6 +89,7 @@ public class NoteService {
         @CacheEvict(value = "note", key = "#id + '-' + #userId")
     })
     public NoteResponse updateNote(Long id, Long userId, NoteRequest request) {
+        validateLanguage(request.getLanguage());
         Note existingNote = noteRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new RuntimeException("Note not found"));
         existingNote.setTitle(request.getTitle());
@@ -76,14 +100,37 @@ public class NoteService {
         Note updatedNote = noteRepository.save(existingNote);
         return toResponse(updatedNote);
     }
+    @Caching(evict = {
+    @CacheEvict(value = "notes", key = "#userId"),
+    @CacheEvict(value = "note", key = "#noteId + '-' + #userId")
+})
+public NoteResponse moveNote(Long noteId, Long folderId, Long userId) {
+    Note note = noteRepository.findByIdAndUserId(noteId, userId)
+            .orElseThrow(() -> new RuntimeException("Note not found"));
 
+    if (folderId != null) {
+        Folder folder = folderRepository.findById(folderId)
+                .orElseThrow(() -> new RuntimeException("Folder not found"));
+        note.setFolder(folder);
+    } else {
+        note.setFolder(null);
+    }
+
+    note.setUpdatedAt(LocalDateTime.now());
+    Note saved = noteRepository.save(note);
+    return toResponse(saved);
+}
+    @Transactional
     @Caching(evict = {
         @CacheEvict(value = "notes", key = "#userId"),
         @CacheEvict(value = "note", key = "#id + '-' + #userId")
     })
     public void deleteNoteById(Long id, Long userId) {
-        Note existingNote = noteRepository.findByIdAndUserId(id, userId)
-                .orElseThrow(() -> new RuntimeException("Note not found"));
-        noteRepository.delete(existingNote);
-    }
+    Note existingNote = noteRepository.findByIdAndUserId(id, userId)
+            .orElseThrow(() -> new RuntimeException("Note not found"));
+    executionRepository.deleteByNoteId(id);  // delete executions first
+    noteRepository.delete(existingNote);
+}
+
+
 }

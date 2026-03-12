@@ -35,7 +35,7 @@ public class RabbitMQConfig {
     @Bean
     public DirectExchange exchange() {
         return new DirectExchange(exchange);
-        // Creates the exchange with your configured name.
+        // Creates the exchange with  configured name.
         // Direct exchange means one routing key maps to exactly one queue — simple and predictable.
 
     
@@ -57,7 +57,7 @@ public class RabbitMQConfig {
     public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
         // RabbitMQ sends messages as bytes. 
-        // Your Java objects need to be converted to bytes before
+        //  Java objects need to be converted to bytes before
         // sending and back to Java objects after receiving.
 
     }
@@ -67,8 +67,7 @@ public class RabbitMQConfig {
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(messageConverter());
         return rabbitTemplate;
-    // This is the main tool you'll use to send messages to RabbitMQ. 
-    // Think of it as the RabbitMQ equivalent of JdbcTemplate for databases.
+    // This is the main tool use to send messages to RabbitMQ. 
 
     }
 }

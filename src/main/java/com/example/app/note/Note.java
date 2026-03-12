@@ -1,7 +1,10 @@
 package com.example.app.note;
+import com.example.app.folder.Folder;
 import com.example.app.user.User;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,6 +29,7 @@ public class Note {
     private Long id;
 
     private String title;
+    @Column(columnDefinition = "TEXT")
     private String content;
     private String language;
     private LocalDateTime createdAt;
@@ -34,5 +38,9 @@ public class Note {
     @ManyToOne
     @JoinColumn(name="user_id")
     private User user;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "folder_id", nullable = true)
+    private Folder folder;
 
 }
