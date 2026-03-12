@@ -24,4 +24,6 @@ public class NoteResponse {
     private LocalDateTime updatedAt;
     private Long userId;
     private String userName;
+    private Long folderId;
+    private String folderName;
 }

@@ -46,6 +46,11 @@ public class NoteController {
         Long userId = (Long)authentication.getPrincipal();
         noteService.deleteNoteById(id, userId);
     }
+    @PostMapping("/{id}/move")
+public NoteResponse moveNote(@PathVariable Long id, @RequestBody MoveNoteRequest request, Authentication authentication) {
+    Long userId = (Long) authentication.getPrincipal();
+    return noteService.moveNote(id, request.getFolderId(), userId);
+}
 
 
 

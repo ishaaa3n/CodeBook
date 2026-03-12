@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 public class ExecutionPublisher {
 
     private final AmqpTemplate amqpTemplate;
+    // This is your pen and envelope. It's a tool Spring gives you to send  messages to RabbitMQ. 
+    // You don't build it yourself
     // Spring's abstraction for sending messages to RabbitMQ
 
     @Value("${rabbitmq.exchange}")
@@ -22,4 +24,5 @@ public class ExecutionPublisher {
     public void publish(ExecutionMessage message) {
         amqpTemplate.convertAndSend(exchange, routingKey, message);
     }
+     
 }
