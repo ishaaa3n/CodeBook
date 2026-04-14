@@ -20,6 +20,7 @@ public class DockerExecutionService {
             // Build docker command — no volume mount, code passed inline
             String[] command = {
                 "docker", "run", "--rm",
+                "-i",
                 "--memory=256m",
                 "--cpus=0.5",
                 "--network=none",
@@ -34,7 +35,8 @@ public class DockerExecutionService {
 
             // Write input to process stdin
             if (input != null && !input.isEmpty()) {
-                process.getOutputStream().write(input.getBytes());
+                process.getOutputStream().write(input.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                process.getOutputStream().flush();
             }
             process.getOutputStream().close();
 
